@@ -1,0 +1,6 @@
+{
+  "name": "Personal Gemini Journal: Reflect. Act. Grow.",
+  "description": "A private, intelligent reflection companion powered by Gemini 3.6 Flash with the Reflect → Act → Grow Engine and user-isolated Cloud Firestore storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

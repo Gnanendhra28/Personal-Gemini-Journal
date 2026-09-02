@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "User": {
+      "collection": "users",
+      "fields": {
+        "uid": { "type": "string", "required": true },
+        "email": { "type": "string", "required": false },
+        "displayName": { "type": "string", "required": false },
+        "photoURL": { "type": "string", "required": false },
+        "createdAt": { "type": "string", "required": true },
+        "lastLoginAt": { "type": "string", "required": true }
+      }
+    },
+    "Entry": {
+      "collection": "users/{userId}/entries",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "category": { "type": "string", "required": true },
+        "initialPrompt": { "type": "string", "required": true },
+        "summary": { "type": "string", "required": false },
+        "tags": { "type": "array", "required": false },
+        "mood": { "type": "string", "required": false },
+        "createdAt": { "type": "string", "required": true },
+        "updatedAt": { "type": "string", "required": true },
+        "turnCount": { "type": "number", "required": true }
+      }
+    },
+    "Message": {
+      "collection": "users/{userId}/entries/{entryId}/messages",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "role": { "type": "string", "required": true },
+        "content": { "type": "string", "required": true },
+        "mode": { "type": "string", "required": false },
+        "createdAt": { "type": "string", "required": true }
+      }
+    },
+    "Reflection": {
+      "collection": "users/{userId}/reflections",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "entryId": { "type": "string", "required": false },
+        "goal": { "type": "string", "required": true },
+        "challenge": { "type": "string", "required": true },
+        "insight": { "type": "string", "required": true },
+        "decision": { "type": "string", "required": false },
+        "opportunity": { "type": "string", "required": false },
+        "status": { "type": "string", "required": true },
+        "createdAt": { "type": "string", "required": true }
+      }
+    },
+    "Action": {
+      "collection": "users/{userId}/actions",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "reflectionId": { "type": "string", "required": false },
+        "entryId": { "type": "string", "required": false },
+        "actionText": { "type": "string", "required": true },
+        "timeframe": { "type": "string", "required": false },
+        "status": { "type": "string", "required": true },
+        "outcome": { "type": "string", "required": false },
+        "outcomeReason": { "type": "string", "required": false },
+        "learning": { "type": "string", "required": false },
+        "createdAt": { "type": "string", "required": true },
+        "completedAt": { "type": "string", "required": false }
+      }
+    },
+    "GrowthRecord": {
+      "collection": "users/{userId}/growth",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "reflectionId": { "type": "string", "required": false },
+        "actionId": { "type": "string", "required": false },
+        "goal": { "type": "string", "required": true },
+        "challenge": { "type": "string", "required": true },
+        "actionText": { "type": "string", "required": true },
+        "outcome": { "type": "string", "required": true },
+        "learning": { "type": "string", "required": true },
+        "growthSummary": { "type": "string", "required": true },
+        "createdAt": { "type": "string", "required": true }
+      }
+    },
+    "Interaction": {
+      "collection": "users/{userId}/interactions",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "userPrompt": { "type": "string", "required": true },
+        "aiResponse": { "type": "string", "required": true },
+        "mode": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "createdAt": { "type": "string", "required": true }
+      }
+    }
+  }
+}
