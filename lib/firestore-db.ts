@@ -347,7 +347,7 @@ export async function getUserInteractions(userId: string): Promise<UserInteracti
  */
 export async function saveReflectionInsight(
   userId: string,
-  insight: Omit<ReflectionInsight, 'id' | 'createdAt'> & { id?: string }
+  insight: Omit<ReflectionInsight, 'id' | 'createdAt' | 'userId'> & { id?: string; userId?: string }
 ): Promise<ReflectionInsight> {
   if (!userId) throw new Error('User ID is required to save a reflection insight');
   const id = insight.id || `refl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -399,7 +399,7 @@ export async function getUserReflections(userId: string): Promise<ReflectionInsi
  */
 export async function saveUserAction(
   userId: string,
-  action: Omit<UserAction, 'id' | 'createdAt'> & { id?: string }
+  action: Omit<UserAction, 'id' | 'createdAt' | 'userId'> & { id?: string; userId?: string }
 ): Promise<UserAction> {
   if (!userId) throw new Error('User ID is required to save an action');
   const id = action.id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -464,7 +464,7 @@ export async function getUserActions(userId: string): Promise<UserAction[]> {
  */
 export async function saveGrowthRecord(
   userId: string,
-  growth: Omit<GrowthRecord, 'id' | 'createdAt'> & { id?: string }
+  growth: Omit<GrowthRecord, 'id' | 'createdAt' | 'userId'> & { id?: string; userId?: string }
 ): Promise<GrowthRecord> {
   if (!userId) throw new Error('User ID is required to save growth record');
   const id = growth.id || `grow_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;

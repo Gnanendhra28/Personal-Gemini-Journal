@@ -119,6 +119,21 @@ export interface ExtractedInsightPayload {
   modelUsed: string;
 }
 
+export interface ExtractedInsightsPayload {
+  goal?: string;
+  challenge?: string;
+  keyInsights?: string[];
+  insight?: string;
+  decision?: string;
+  opportunity?: string;
+  sentiment?: string;
+  suggestedAction?: string;
+  timeframe?: string;
+  modelUsed?: string;
+}
+
+export type Reflection = ReflectionInsight;
+
 export interface FollowUpAnalysisPayload {
   outcome: ActionOutcome;
   outcomeReason: string;
