@@ -150,7 +150,7 @@ export function LandingHero({ onSignIn, authLoading, authError }: LandingHeroPro
 
           <p className="text-xs text-slate-500 flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5 text-slate-400" />
-            Zero password storage. Strict user-isolated Firestore rules /*).
+            Zero password storage. Strict user-isolated Firestore rules).
           </p>
 
           {authError && (

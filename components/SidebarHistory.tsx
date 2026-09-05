@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Search,
   BookOpen,
@@ -10,6 +10,7 @@ import {
   Trash2,
   Tag,
   ChevronRight,
+  ChevronLeft,
   Filter,
   Plus,
   Smile,
@@ -17,6 +18,8 @@ import {
   Eye,
   AlertCircle,
   Lightbulb,
+  X,
+  XCircle,
 } from 'lucide-react';
 import { JournalEntry, MoodType } from '@/lib/types';
 
@@ -27,6 +30,7 @@ interface SidebarHistoryProps {
   onNewEntry: () => void;
   onDeleteEntry: (entryId: string) => Promise<void>;
   loading: boolean;
+  onClose?: () => void;
 }
 
 const MOOD_ICONS: Record<MoodType, { label: string; color: string }> = {
@@ -46,10 +50,21 @@ export function SidebarHistory({
   onNewEntry,
   onDeleteEntry,
   loading,
+  onClose,
 }: SidebarHistoryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMood, setSelectedMood] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const moodScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollMoods = (direction: 'left' | 'right') => {
+    if (moodScrollRef.current) {
+      moodScrollRef.current.scrollBy({
+        left: direction === 'left' ? -120 : 120,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -92,72 +107,118 @@ export function SidebarHistory({
   };
 
   return (
-    <aside className="w-full lg:w-80 flex flex-col h-full bg-slate-950 border-r border-slate-800/80 flex-shrink-0">
+    <aside className="w-full h-full flex flex-col bg-slate-950 border-r border-slate-800/80 select-none">
       {/* Sidebar Header & Search */}
-      <div className="p-4 border-b border-slate-800 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-indigo-400" />
-            <h2 className="text-sm font-semibold text-slate-200">Reflection History</h2>
-            <span className="text-xs px-2 py-0.2 rounded-full bg-slate-800 text-slate-400 font-mono">
+      <div className="p-3 sm:p-4 border-b border-slate-800 space-y-2.5 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <BookOpen className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <h2 className="text-xs sm:text-sm font-semibold text-slate-200 truncate">
+              Reflections
+            </h2>
+            <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono flex-shrink-0">
               {entries.length}
             </span>
           </div>
 
-          <button
-            id="sidebar-new-entry-btn"
-            onClick={onNewEntry}
-            className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs transition-colors flex items-center gap-1"
-            title="Start New Reflection"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-medium pr-1">New</span>
-          </button>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              id="sidebar-new-entry-btn"
+              onClick={onNewEntry}
+              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-medium transition-all flex items-center gap-1 shadow-sm"
+              title="Start New Reflection"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New</span>
+            </button>
+
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             id="history-search-input"
             type="text"
-            placeholder="Search reflections, tags, ideas..."
+            placeholder="Search reflections, tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+            >
+              <XCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Mood Filter Pill Scroll */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none text-[11px]">
-          <button
-            onClick={() => setSelectedMood('all')}
-            className={`px-2 py-0.5 rounded-full border transition-colors whitespace-nowrap ${
-              selectedMood === 'all'
-                ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 font-medium'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-            }`}
+        {/* Mood Filter Pill Scroll Track with Smooth Controls */}
+        <div className="relative group/moods">
+          <div
+            ref={moodScrollRef}
+            className="flex items-center gap-1.5 overflow-x-auto scroll-smooth py-1 px-0.5 scrollbar-none touch-pan-x"
           >
-            All
-          </button>
-          {Object.entries(MOOD_ICONS).map(([key, val]) => (
             <button
-              key={key}
-              onClick={() => setSelectedMood(key)}
-              className={`px-2 py-0.5 rounded-full border transition-colors whitespace-nowrap ${
-                selectedMood === key
-                  ? `${val.color} font-medium`
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+              onClick={() => setSelectedMood('all')}
+              className={`px-2.5 py-0.5 rounded-full border text-[11px] transition-all whitespace-nowrap flex-shrink-0 ${
+                selectedMood === 'all'
+                  ? 'bg-indigo-600/25 text-indigo-300 border-indigo-500/40 font-semibold shadow-sm'
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
-              {val.label}
+              All
             </button>
-          ))}
+            {Object.entries(MOOD_ICONS).map(([key, val]) => (
+              <button
+                key={key}
+                onClick={() => setSelectedMood(key)}
+                className={`px-2.5 py-0.5 rounded-full border text-[11px] transition-all whitespace-nowrap flex-shrink-0 ${
+                  selectedMood === key
+                    ? `${val.color} font-semibold shadow-sm`
+                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                }`}
+              >
+                {val.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Smooth Scroll Arrow Buttons (laptop/desktop hover assist) */}
+          <button
+            onClick={() => scrollMoods('left')}
+            className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-900/95 border border-slate-700 text-slate-300 items-center justify-center opacity-0 group-hover/moods:opacity-100 transition-opacity hover:bg-slate-800 shadow-md z-10"
+            title="Scroll moods left"
+            aria-label="Scroll moods left"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </button>
+          <button
+            onClick={() => scrollMoods('right')}
+            className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-900/95 border border-slate-700 text-slate-300 items-center justify-center opacity-0 group-hover/moods:opacity-100 transition-opacity hover:bg-slate-800 shadow-md z-10"
+            title="Scroll moods right"
+            aria-label="Scroll moods right"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </button>
         </div>
       </div>
 
       {/* Entries List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto scroll-smooth p-2.5 sm:p-3 space-y-2">
         {loading ? (
           <div className="py-12 text-center text-xs text-slate-500 space-y-2">
             <div className="w-5 h-5 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mx-auto" />
@@ -193,20 +254,20 @@ export function SidebarHistory({
               <div
                 key={entry.id}
                 onClick={() => onSelectEntry(entry)}
-                className={`group relative p-3 rounded-xl border text-left cursor-pointer transition-all duration-150 ${
+                className={`group relative p-2.5 sm:p-3 rounded-xl border text-left cursor-pointer transition-all duration-150 ${
                   isActive
                     ? 'bg-slate-900 border-indigo-500/50 shadow-sm shadow-indigo-500/5'
                     : 'bg-slate-900/40 hover:bg-slate-900/90 border-slate-800 hover:border-slate-700'
                 }`}
               >
                 {/* Header: Date, Turns & Mood Badge */}
-                <div className="flex items-center justify-between gap-1 mb-1.5 text-[11px] text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-500" />
-                    {formatDate(entry.createdAt)}
+                <div className="flex items-center justify-between gap-1 mb-1 text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1 truncate text-slate-400">
+                    <Calendar className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                    <span className="truncate">{formatDate(entry.createdAt)}</span>
                   </span>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     {moodMeta && (
                       <span
                         className={`px-1.5 py-0.2 rounded-full border text-[10px] ${moodMeta.color}`}
@@ -232,9 +293,9 @@ export function SidebarHistory({
                 </p>
 
                 {/* Tags and Delete Trigger */}
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[10px]">
+                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-800/60 text-[10px]">
                   <div className="flex items-center gap-1 text-slate-500 truncate max-w-[170px]">
-                    <Tag className="w-2.5 h-2.5 text-slate-500" />
+                    <Tag className="w-2.5 h-2.5 text-slate-500 flex-shrink-0" />
                     <span className="truncate">{entry.category || 'Reflection'}</span>
                   </div>
 

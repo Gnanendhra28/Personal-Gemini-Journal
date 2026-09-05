@@ -43,6 +43,36 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('journal');
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
   const [followUpTargetAction, setFollowUpTargetAction] = useState<UserAction | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return true;
+  });
+
+  // Track viewport changes for responsive sidebar default
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleSelectTab = (tab: ActiveTab) => {
+    if (tab === 'history') {
+      setIsSidebarOpen(true);
+      if (activeEntry) {
+        setActiveTab('journal');
+      } else {
+        setActiveTab('history');
+      }
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   // Journal State
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -549,13 +579,18 @@ export default function HomePage() {
       <HeaderNav
         user={user}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        onNewEntry={handleNewEntry}
+        onSelectTab={handleSelectTab}
+        onNewEntry={() => {
+          handleNewEntry();
+          setActiveTab('journal');
+        }}
         onSignOut={signOut}
         entriesCount={entries.length}
         activeActionsCount={activeActionsCount}
         growthCount={growthRecords.length}
         onOpenSecurityInfo={() => setIsSecurityModalOpen(true)}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        isSidebarOpen={isSidebarOpen}
       />
 
       {/* Main View Area */}
@@ -566,21 +601,52 @@ export default function HomePage() {
           authError={authError}
         />
       ) : (
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-          {/* Left Sidebar History (Always visible on large screens in Journal or History tab) */}
-          <div className={`${activeTab === 'history' ? 'block w-full lg:w-72' : 'hidden lg:block lg:w-72'}`}>
-            <SidebarHistory
-              entries={entries}
-              activeEntryId={activeEntry?.id || null}
-              onSelectEntry={handleSelectEntry}
-              onNewEntry={handleNewEntry}
-              onDeleteEntry={handleDeleteEntry}
-              loading={loadingEntries}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Mobile & Tablet Backdrop Overlay */}
+          {isSidebarOpen && (
+            <div
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden transition-opacity duration-200"
+              aria-hidden="true"
             />
+          )}
+
+          {/* Left Sidebar History (Responsive Slide-in Drawer on Mobile/Tab, Smooth Collapsible Sidebar on Laptop/Desktop) */}
+          <div
+            className={`
+              fixed inset-y-0 left-0 z-40 w-80 max-w-[85vw] transform transition-transform duration-200 ease-in-out shadow-2xl
+              lg:relative lg:translate-x-0 lg:z-auto lg:shadow-none lg:transition-[width] lg:duration-200
+              ${isSidebarOpen ? 'translate-x-0 lg:w-80 flex-shrink-0' : '-translate-x-full lg:w-0 lg:overflow-hidden'}
+              ${activeTab === 'history' ? 'block' : ''}
+            `}
+          >
+            <div className="w-80 h-full">
+              <SidebarHistory
+                entries={entries}
+                activeEntryId={activeEntry?.id || null}
+                onSelectEntry={(entry) => {
+                  handleSelectEntry(entry);
+                  setActiveTab('journal');
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setIsSidebarOpen(false);
+                  }
+                }}
+                onNewEntry={() => {
+                  handleNewEntry();
+                  setActiveTab('journal');
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setIsSidebarOpen(false);
+                  }
+                }}
+                onDeleteEntry={handleDeleteEntry}
+                loading={loadingEntries}
+                onClose={() => setIsSidebarOpen(false)}
+              />
+            </div>
           </div>
 
           {/* Central Active Content based on activeTab */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
             {activeTab === 'journal' || (activeTab === 'history' && !activeEntry) ? (
               <ActiveWorkspace
                 key={activeEntry?.id || 'new_workspace'}
@@ -602,7 +668,7 @@ export default function HomePage() {
                 persistenceStatus={persistenceStatus}
               />
             ) : activeTab === 'actions' ? (
-              <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="flex-1 overflow-y-auto scroll-smooth px-3 sm:px-6 py-4">
                 <ActionEngineView
                   actions={userActions}
                   userId={user.uid}
@@ -612,7 +678,7 @@ export default function HomePage() {
                 />
               </div>
             ) : activeTab === 'growth' ? (
-              <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="flex-1 overflow-y-auto scroll-smooth px-3 sm:px-6 py-4">
                 <GrowthJourneyView
                   growthRecords={growthRecords}
                   userId={user.uid}
